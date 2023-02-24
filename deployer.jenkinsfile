@@ -1,0 +1,55 @@
+pipeline {
+  agent any
+  
+  environment {
+      EC2_INSTANCE = "ec2-user@ec2-13-53-82-217.eu-north-1.compute.amazonaws.com" // Change this EVERY. SINGLE. TIME. you turn off and turn on the instance!
+      ECR_REPOSITORY = "public.ecr.aws/b2s0t6i0"
+      DOCKER_IMAGE = "worlds-automated:latest"
+      CREDS = credentials('EC2_SSH')
+  }
+
+  stages {
+    stage('Connect to EC2 instance') {
+      steps {
+        sh 'ssh -T -o StrictHostKeyChecking=no -i "${CREDS}" ${EC2_INSTANCE}'
+    }
+  }
+  // Just so there's no complaining, these next 2 stages were taken from Marians' deployment code. Credit goes to Marians
+    stage('Stop Docker Container') {
+        steps {
+            script {
+                try {
+                    sh 'ssh -T -o StrictHostKeyChecking=no -i "${CREDS}" ${EC2_INSTANCE} "docker stop worlds-automated"'
+                } catch (err) {
+                    echo err.getMessage()
+                }
+            }
+            echo currentBuild.result
+        }
+    }
+    
+        stage('Remove Docker Container') {
+        steps {
+            script {
+                try {
+                    sh 'ssh -T -o StrictHostKeyChecking=no -i "${CREDS}" ${EC2_INSTANCE} "docker rm worlds-automated"'
+                } catch (err) {
+                    echo err.getMessage()
+                }
+            }
+            echo currentBuild.result
+        }
+    }
+
+    stage('Pull Docker image') {
+      steps {
+        sh 'ssh -T -o StrictHostKeyChecking=no -i "${CREDS}" ${EC2_INSTANCE} "docker pull $ECR_REPOSITORY/$DOCKER_IMAGE"'
+    }
+  }
+    stage('Run Docker container') {
+      steps {
+        sh 'ssh -T -o StrictHostKeyChecking=no -i "${CREDS}" ${EC2_INSTANCE} "docker run -d -p 3000:3000 --cpus=0.1 --memory=200m $ECR_REPOSITORY/$DOCKER_IMAGE"'
+      }
+    }
+  }
+}

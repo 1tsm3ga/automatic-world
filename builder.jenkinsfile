@@ -1,0 +1,44 @@
+pipeline {
+  agent any
+  
+  environment {
+    DOCKER_IMAGE_NAME = "worlds-automated"
+    AWS_REGION = "us-east-1"
+    ECR_REPOSITORY = "public.ecr.aws/b2s0t6i0"
+  }
+  
+  stages {
+    stage('Clone Git repository') {
+      steps {
+        git branch: 'main', url: 'https://github.com/1tsm3ga/automatic-world.git'
+      }
+    }
+    
+    stage('Install NextJS app dependencies') {
+      steps {
+        sh 'echo "Current directory: $(pwd)"'
+        sh 'cd /var/lib/jenkins/workspace/would-it-automate && yarn install'
+      }
+    }
+    
+    stage('Build NextJS app') {
+      steps {
+        sh 'cd /var/lib/jenkins/workspace/would-it-automate && yarn build'
+      }
+    }
+    
+    stage('Build and push Docker image to ECR') {
+      steps {
+        withCredentials([
+          string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+          string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+        ]) {
+          sh 'eval $(aws ecr-public get-login-password --no-include-email --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY)'
+          sh 'docker build -t $DOCKER_IMAGE_NAME /var/lib/jenkins/workspace/would-it-automate'
+          sh 'docker tag $DOCKER_IMAGE_NAME $ECR_REPOSITORY/$DOCKER_IMAGE_NAME'
+          sh 'docker push $ECR_REPOSITORY/$DOCKER_IMAGE_NAME'
+        }
+      }
+    }
+  }
+}
