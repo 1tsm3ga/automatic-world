@@ -18,13 +18,13 @@ pipeline {
     stage('Install NextJS app dependencies') {
       steps {
         sh 'echo "Current directory: $(pwd)"'
-        sh 'cd /var/lib/jenkins/workspace/would-it-automate && yarn install'
+        sh 'cd /var/lib/jenkins/workspace/would-it-automate && npm install'
       }
     }
     
     stage('Build NextJS app') {
       steps {
-        sh 'cd /var/lib/jenkins/workspace/would-it-automate && yarn build'
+        sh 'cd /var/lib/jenkins/workspace/would-it-automate && npm run build'
       }
     }
     
@@ -35,6 +35,7 @@ pipeline {
           string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
         ]) {
           sh 'aws ecr-public get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY'
+          sh 'docker build -t worlds-automated /var/lib/jenkins/workspace/would-it-automate'
           sh 'docker tag ${DOCKER_IMAGE_NAME} ${ECR_REPOSITORY}/${DOCKER_IMAGE_NAME}:${TAG}'
           sh 'docker push ${ECR_REPOSITORY}/${DOCKER_IMAGE_NAME}:${TAG}'
         }
