@@ -24,7 +24,7 @@ pipeline {
     
     stage('Build NextJS app') {
       steps {
-        sh 'cd /var/lib/jenkins/workspace/would-it-automate && npm build'
+        sh 'cd /var/lib/jenkins/workspace/would-it-automate && npm run build'
       }
     }
     
