@@ -18,13 +18,13 @@ pipeline {
     stage('Install NextJS app dependencies') {
       steps {
         sh 'echo "Current directory: $(pwd)"'
-        sh 'cd /var/lib/jenkins/workspace/would-it-automate && npm install'
+        sh 'cd /var/lib/jenkins/workspace/would-it-automate && yarn install'
       }
     }
     
     stage('Build NextJS app') {
       steps {
-        sh 'cd /var/lib/jenkins/workspace/would-it-automate && npm run build'
+        sh 'cd /var/lib/jenkins/workspace/would-it-automate && yarn build'
       }
     }
     
