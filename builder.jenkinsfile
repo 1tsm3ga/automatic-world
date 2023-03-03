@@ -21,6 +21,12 @@ pipeline {
         sh 'cd /var/lib/jenkins/workspace/would-it-automate && npm install'
       }
     }
+
+    stage('ESLint') {
+	steps {
+	   sh 'npm run lint'
+	}
+    }
     
     stage('Build NextJS app') {
       steps {
