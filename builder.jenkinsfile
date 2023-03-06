@@ -49,6 +49,7 @@ pipeline {
     	   waitforQualityGate abortPipeline: true
     	   }
     	}
+    }
     
     stage('Build NextJS app') {
       steps {
