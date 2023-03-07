@@ -6,6 +6,7 @@ pipeline {
     TAG= "${env.BUILD_NUMBER}"
     AWS_REGION = "us-east-1"
     ECR_REPOSITORY = "public.ecr.aws/b2s0t6i0"
+    scannerHome = tool 'NextJs
   }
   
   stages {
